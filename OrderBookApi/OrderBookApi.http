@@ -1,0 +1,37 @@
+@OrderBookApi_HostAddress = http://localhost:5256
+@OrderId = 1baf159a-c377-4c1c-aef2-8a7ef83cf130
+
+POST {{OrderBookApi_HostAddress}}/orders/asks
+Content-Type: application/json
+
+{  
+    "WalletCode": "ABC",
+    "Price": 10.00,
+    "Quantity": 100
+}
+
+###
+POST {{OrderBookApi_HostAddress}}/orders/bids
+Content-Type: application/json
+
+{
+  "WalletCode": "DEF",
+  "Price":10,
+  "Quantity":10
+}
+
+###
+
+GET {{OrderBookApi_HostAddress}}/orders/asks
+
+###
+
+GET {{OrderBookApi_HostAddress}}/orders/bids
+
+###
+
+GET {{OrderBookApi_HostAddress}}/orders/{{OrderId}}
+
+###
+
+GET {{OrderBookApi_HostAddress}}/wallets

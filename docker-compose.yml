@@ -1,0 +1,71 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    hostname: "rabbitmq"
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Management
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: pwd_rabbitmq
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 10s
+
+  yugabytedb:
+    image: yugabytedb/yugabyte:latest
+    container_name: yugabytedb
+    command: ["/home/yugabyte/bin/yugabyted", "start", "--background=false", "--base_dir=/home/yugabyte/yb_data"]
+    ports:
+      - "7000:7000" 
+      - "9000:9000" 
+      - "15433:15433"
+      - "5433:5433"
+      - "9042:9042"
+    volumes:
+      - yb_data:/home/yugabyte/yb_data      
+    healthcheck:
+      test: ["CMD", "/home/yugabyte/bin/ysqlsh", "-h", "localhost", "-p", "9000", "-c", "SELECT 1;"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 60s
+    restart: on-failure
+    environment:      
+      POSTGRES_USER: yugabyte
+      POSTGRES_DB: yugabyte
+      POSTGRES_PASSWORD: yugabyte # Se você quiser uma senha, pode definir aqui
+
+  orderbookapi:
+    build:
+      context: .
+      dockerfile: OrderBookApi/Dockerfile
+    environment:
+      RABBITMQ_HOSTNAME: rabbitmq
+      CONNECTIONSTRINGS_YUGABYTEDBCONNECTION: "Host=yugabytedb;Port=5433;Username=yugabyte;Password=yugabyte;Database=yugabyte" 
+    ports:
+      - "8080:8080"
+    # depends_on:
+    #   - yugabytedb
+    #   - rabbitmq
+
+  orderbookworker:
+    build:
+      context: .
+      dockerfile: OrderBookWorker/Dockerfile
+    environment:
+      RABBITMQ_HOSTNAME: rabbitmq
+      CONNECTIONSTRINGS_YUGABYTEDBCONNECTION: "Host=yugabytedb;Port=5433;Username=yugabyte;Password=yugabyte;Database=yugabyte"
+    # depends_on:
+    #   - yugabytedb
+    #   - rabbitmq
+  
+volumes:
+  rabbitmq_data:
+  yb_data: 
+
