@@ -140,6 +140,11 @@ public class OrderBook
                     continue;
                 }
                 
+                if (sellOrder.WalletCode == buyer.WalletCode)
+                {
+                    continue;
+                }
+                
                 _wallets.TryGetValue(sellOrder.WalletCode, out var seller);
 
                 if (seller.Quantity <= 0)
@@ -204,7 +209,7 @@ public class OrderBook
                 break;
             }
             
-            while (sellOrder.RemainingQuantity > 0 && buyQueue.TryPeek(out Order? buyOrder))
+            while (sellOrder.RemainingQuantity > 0 && buyQueue.TryPeek(out Order? buyOrder) && seller.Quantity > 0)
             {
                 if (buyOrder.IsFulfilled)
                 {
@@ -212,7 +217,12 @@ public class OrderBook
                     continue;
                 }
                 
-                _wallets.TryGetValue(sellOrder.WalletCode, out var buyer);
+                if (seller.WalletCode == buyOrder.WalletCode)
+                {
+                    continue;
+                }
+                
+                _wallets.TryGetValue(buyOrder.WalletCode, out var buyer);
 
                 if (buyer.Amount <= 0)
                 {

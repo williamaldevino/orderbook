@@ -114,7 +114,6 @@ namespace OrderBookWorker
             
             _orderBook.LoadState(orderBookState);
         }
-
        
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
